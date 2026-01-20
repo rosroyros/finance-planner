@@ -1,0 +1,363 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Scenario Planner</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --danger: #dc2626;
+            --success: #16a34a;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --text: #0f172a;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 800px) {
+            .container { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--card);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
+        }
+
+        h2 { margin-top: 0; font-size: 1.25rem; margin-bottom: 20px; color: #334155; }
+        
+        .input-group { margin-bottom: 16px; }
+        
+        label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #475569;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box; 
+            transition: all 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+            font-weight: 700;
+            margin: 24px 0 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .stat-box {
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-value {
+            font-size: 1.1rem;
+            font-weight: 800;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .positive { color: var(--success); }
+        .negative { color: var(--danger); }
+
+        .chart-container {
+            position: relative;
+            height: 500px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Controls -->
+        <div class="card">
+            <h2>Scenario Settings</h2>
+            
+            <div class="section-title">Assets & Returns</div>
+            <div class="input-group">
+                <label>Starting Capital ($)</label>
+                <input type="number" id="capital" value="2000000" step="10000">
+            </div>
+            <div class="input-group">
+                <label>Annual Interest Rate (%)</label>
+                <input type="number" id="interest" value="4.0" step="0.1">
+            </div>
+
+            <div class="section-title">Expenses</div>
+            <div class="input-group">
+                <label>Monthly Spending (Initial) ($)</label>
+                <input type="number" id="spending" value="30000" step="500">
+            </div>
+            <div class="input-group">
+                <label>Annual Inflation (%)</label>
+                <input type="number" id="inflation" value="0.0" step="0.1">
+            </div>
+
+            <div class="section-title">Income Stream</div>
+            <div class="input-group">
+                <label>Phase 1 Income ($)</label>
+                <input type="number" id="income1" value="16000" step="500">
+            </div>
+            <div class="input-group">
+                <label>Phase 2 Income ($)</label>
+                <input type="number" id="income2" value="12000" step="500">
+            </div>
+            <div class="input-group">
+                <label>Income Drops After (Years)</label>
+                <input type="number" id="dropYear" value="4" step="1">
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <span class="stat-value" id="finalBalance">--</span>
+                    <span class="stat-label">Balance Year 20</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-value" id="depletionYear">--</span>
+                    <span class="stat-label">Runs Out In</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="card">
+            <div class="chart-container">
+                <canvas id="financeChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let chartInstance = null;
+        const years = 20;
+        const months = years * 12;
+
+        function formatMoney(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function calculateAndDraw() {
+            // Inputs
+            const initialCapital = parseFloat(document.getElementById('capital').value) || 0;
+            const annualInterest = (parseFloat(document.getElementById('interest').value) || 0) / 100;
+            const startSpending = parseFloat(document.getElementById('spending').value) || 0;
+            const inflationRate = (parseFloat(document.getElementById('inflation').value) || 0) / 100;
+            const income1 = parseFloat(document.getElementById('income1').value) || 0;
+            const income2 = parseFloat(document.getElementById('income2').value) || 0;
+            const dropMonth = (parseFloat(document.getElementById('dropYear').value) || 0) * 12;
+
+            const monthlyInterest = annualInterest / 12;
+            
+            let currentCapital = initialCapital;
+            let currentSpending = startSpending;
+            
+            const labels = [];
+            const data = [];
+            let depletionDate = null;
+
+            for (let m = 0; m <= months; m++) {
+                // Determine Year
+                const currentYear = m / 12;
+                
+                labels.push(currentYear);
+                data.push(currentCapital);
+
+                // Check depletion
+                if (currentCapital < 0 && depletionDate === null) {
+                    depletionDate = currentYear.toFixed(1);
+                }
+
+                // Inflation adjustment (Annual)
+                if (m > 0 && m % 12 === 0) {
+                    currentSpending = currentSpending * (1 + inflationRate);
+                }
+
+                // Income logic
+                const currentIncome = (m < dropMonth) ? income1 : income2;
+
+                // Calculation
+                const gap = currentSpending - currentIncome;
+                const interestEarned = currentCapital * monthlyInterest;
+                
+                // Update
+                currentCapital = currentCapital + interestEarned - gap;
+            }
+
+            // Update UI Stats
+            const finalBalEl = document.getElementById('finalBalance');
+            finalBalEl.innerText = formatMoney(currentCapital);
+            finalBalEl.className = currentCapital >= 0 ? 'stat-value positive' : 'stat-value negative';
+
+            const depEl = document.getElementById('depletionYear');
+            if (depletionDate) {
+                depEl.innerText = `Year ${depletionDate}`;
+                depEl.className = 'stat-value negative';
+            } else {
+                depEl.innerText = 'Safe (>20 Yrs)';
+                depEl.className = 'stat-value positive';
+            }
+
+            // Draw Chart
+            const ctx = document.getElementById('financeChart').getContext('2d');
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            // Filter data to reduce point density for cleaner rendering
+            // We'll keep every 3rd month
+            const step = 3;
+            const displayLabels = labels.filter((_, i) => i % step === 0);
+            const displayData = data.filter((_, i) => i % step === 0);
+            const zeroLine = Array(displayData.length).fill(0);
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: displayLabels,
+                    datasets: [
+                        {
+                            label: 'Capital Balance',
+                            data: displayData,
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.05)',
+                            borderWidth: 2.5,
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            fill: true,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Zero Line',
+                            data: zeroLine,
+                            borderColor: '#ef4444',
+                            borderWidth: 1.5,
+                            borderDash: [6, 4],
+                            pointRadius: 0,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index',
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Capital Projection Over 20 Years',
+                            font: { size: 16, weight: 'bold' },
+                            padding: { bottom: 20 }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: (items) => `Year ${items[0].label}`,
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        legend: { position: 'bottom' }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: { display: true, text: 'Years' },
+                            grid: { display: false },
+                            ticks: { stepSize: 2 }
+                        },
+                        y: {
+                            grid: { color: '#f1f5f9' },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + (value / 1000000).toFixed(1) + 'm';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Attach listeners
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('input', calculateAndDraw);
+        });
+
+        // Initial Draw
+        window.addEventListener('load', calculateAndDraw);
+
+    </script>
+</body>
+</html>
