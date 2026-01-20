@@ -57,7 +57,7 @@
         }
 
         /* Keep compact on very small screens */
-        @media (max-width: 600px) {
+        @media (max-width: 650px) {
             .input-grid { 
                 grid-template-columns: 1fr 1fr; 
                 gap: 8px;
@@ -77,7 +77,7 @@
             justify-content: space-between;
             align-items: center;
             font-weight: 800;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             margin-bottom: 12px;
             padding-bottom: 6px;
             border-bottom: 2px solid #f1f5f9;
@@ -117,24 +117,34 @@
             color: #2563eb;
         }
 
-        .input-group { margin-bottom: 8px; }
+        .input-group { margin-bottom: 10px; }
         
         label {
             display: flex;
             justify-content: space-between;
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             font-weight: 600;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
             color: #64748b;
         }
 
         input {
             width: 100%;
-            padding: 6px 8px;
+            padding: 8px 10px;
             border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            font-size: 0.85rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            box-sizing: border-box; 
+            transition: all 0.2s;
             text-align: right;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
         .stats-summary {
@@ -144,24 +154,37 @@
             margin-top: 16px;
         }
 
+        @media (max-width: 650px) {
+            .stats-summary { grid-template-columns: 1fr 1fr; }
+            body { padding: 6px; }
+            .card { padding: 12px; }
+            .input-grid { gap: 10px; }
+            label { font-size: 0.7rem; }
+            input { padding: 6px 8px; font-size: 0.85rem; }
+            .global-settings { padding: 8px; flex-direction: column; align-items: stretch; gap: 8px; }
+        }
+
         .stat-box {
             background: #f8fafc;
-            padding: 8px;
-            border-radius: 10px;
+            padding: 10px 4px;
+            border-radius: 12px;
             text-align: center;
             border: 1px solid var(--border);
         }
 
         .stat-value {
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             font-weight: 800;
             display: block;
+            margin-top: 2px;
         }
 
         .stat-label {
             font-size: 0.6rem;
             color: #64748b;
+            text-transform: uppercase;
             font-weight: 700;
+            white-space: nowrap;
         }
 
         .positive { color: #16a34a; }
@@ -175,8 +198,6 @@
 
         @media (max-width: 500px) {
             .chart-container { height: 300px; }
-            .global-settings { flex-direction: column; padding: 8px; }
-            label { font-size: 0.65rem; }
         }
     </style>
 </head>
@@ -188,7 +209,7 @@
             <div class="global-settings">
                 <div class="input-group" style="margin-bottom:0; flex:1;">
                     <label style="justify-content: center; margin-bottom: 4px;">טווח תחזית (שנים)</label>
-                    <input type="number" id="horizon" value="40" step="1" inputmode="numeric" style="text-align: center; max-width: 100px; margin: 0 auto; display: block;">
+                    <input type="number" id="horizon" value="20" step="1" inputmode="numeric" style="text-align: center; max-width: 100px; margin: 0 auto; display: block;">
                 </div>
             </div>
         </div>
@@ -262,7 +283,7 @@
                     <div class="input-group"><label>הון התחלתי (₪)</label><input type="text" value="${s.capital}" oninput="updateVal(${s.id}, 'capital', this.value, true)"></div>
                     <div class="input-group"><label>ריבית שנתית (%)</label><input type="number" value="${s.interest}" step="0.1" oninput="updateVal(${s.id}, 'interest', this.value)"></div>
                     <div class="input-group"><label>אינפלציה שנתית (%)</label><input type="number" value="${s.inflation}" step="0.1" oninput="updateVal(${s.id}, 'inflation', this.value)"></div>
-                    <div class="input-group"><label>הוצאה חודשית (₪)</label><input type="text" value="${s.spending}" oninput="updateVal(${s.id}, 'spending', this.value, true)"></div>
+                    <div class="input-group"><label>הוצאה חودשית (₪)</label><input type="text" value="${s.spending}" oninput="updateVal(${s.id}, 'spending', this.value, true)"></div>
                     <div class="input-group"><label>הכנסה שלב 1 (₪)</label><input type="text" value="${s.income1}" oninput="updateVal(${s.id}, 'income1', this.value, true)"></div>
                     <div class="input-group"><label>הכנסה שלב 2 (₪)</label><input type="text" value="${s.income2}" oninput="updateVal(${s.id}, 'income2', this.value, true)"></div>
                     <div class="input-group"><label>ירידת הכנסה (שנה)</label><input type="number" value="${s.dropYear}" oninput="updateVal(${s.id}, 'dropYear', this.value)"></div>
@@ -295,7 +316,6 @@
 
         function removeScenario(id) {
             scenarios = scenarios.filter(s => s.id !== id);
-            // Re-map names
             const names = ["תרחיש א'", "תרחיש ב'", "תרחיש ג'", "תרחיש ד'"];
             scenarios.forEach((s, i) => s.name = names[i]);
             renderScenarios();
@@ -344,11 +364,10 @@
         }
 
         function calculateAndDraw() {
-            const years = parseInt(document.getElementById('horizon').value) || 40;
+            const years = parseInt(document.getElementById('horizon').value) || 20;
             const months = years * 12;
             const allResults = scenarios.map(s => runScenario(s, years));
 
-            // Stats
             const stats = document.getElementById('statsSummary');
             stats.innerHTML = '';
             allResults.forEach((r, i) => {
@@ -364,7 +383,6 @@
                 stats.appendChild(box);
             });
 
-            // Chart
             const step = years > 30 ? 12 : (years > 15 ? 6 : 3);
             const labels = Array.from({length: months + 1}, (_, i) => (i / 12).toFixed(1)).filter((_, i) => i % step === 0);
             
@@ -396,7 +414,10 @@
                     },
                     scales: {
                         x: { ticks: { maxRotation: 0, autoSkip: true, font: { size: 9 } } },
-                        y: { position: 'right', ticks: { font: { size: 9 }, callback: (v) => '₪' + (v / 1000000).toFixed(1) + 'M' } }
+                        y: { 
+                            position: 'left', // FIXED: Forced to left
+                            ticks: { font: { size: 9 }, callback: (v) => '₪' + (v / 1000000).toFixed(1) + 'M' } 
+                        }
                     }
                 }
             });
