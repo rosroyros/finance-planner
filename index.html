@@ -8,13 +8,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         :root {
-            --primary: #2563eb;
-            --secondary: #7c3aed;
-            --danger: #dc2626;
-            --success: #16a34a;
             --bg: #f1f5f9;
             --card: #ffffff;
             --text: #0f172a;
+            --border: #e2e8f0;
         }
 
         body {
@@ -28,7 +25,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             width: 100%;
             display: flex;
             flex-direction: column;
@@ -45,8 +42,8 @@
         .global-settings {
             display: flex;
             justify-content: center;
+            align-items: center;
             gap: 20px;
-            margin-bottom: 8px;
             background: #e2e8f0;
             padding: 12px;
             border-radius: 12px;
@@ -54,98 +51,121 @@
 
         .input-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 16px;
+            align-items: start;
         }
 
-        h2 { margin-top: 0; font-size: 1.1rem; margin-bottom: 16px; color: #334155; }
-        
+        /* Keep compact on very small screens */
+        @media (max-width: 600px) {
+            .input-grid { 
+                grid-template-columns: 1fr 1fr; 
+                gap: 8px;
+            }
+        }
+
+        .scenario-panel {
+            position: relative;
+            background: #fff;
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 12px;
+        }
+
         .scenario-header {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 6px;
             font-weight: 800;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             margin-bottom: 12px;
             padding-bottom: 6px;
-            border-bottom: 2px solid #e2e8f0;
+            border-bottom: 2px solid #f1f5f9;
         }
 
-        .color-A { color: var(--primary); }
-        .color-B { color: var(--secondary); }
+        .remove-btn {
+            background: #fee2e2;
+            color: #ef4444;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-        .input-group { margin-bottom: 10px; }
+        .add-scenario-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.5);
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 200px;
+        }
+
+        .add-scenario-card:hover {
+            background: #fff;
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+
+        .input-group { margin-bottom: 8px; }
         
         label {
             display: flex;
             justify-content: space-between;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
             color: #64748b;
         }
 
         input {
             width: 100%;
-            padding: 8px 10px;
+            padding: 6px 8px;
             border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            box-sizing: border-box; 
-            transition: all 0.2s;
+            border-radius: 6px;
+            font-size: 0.85rem;
             text-align: right;
-            appearance: none;
-            -webkit-appearance: none;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
         .stats-summary {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 8px;
             margin-top: 16px;
         }
 
-        @media (max-width: 650px) {
-            .stats-summary { grid-template-columns: 1fr 1fr; }
-            body { padding: 6px; }
-            .card { padding: 12px; }
-            .input-grid { gap: 10px; }
-            label { font-size: 0.7rem; }
-            input { padding: 6px 8px; font-size: 0.85rem; }
-            .global-settings { padding: 8px; flex-direction: column; align-items: stretch; gap: 8px; }
-        }
-
         .stat-box {
             background: #f8fafc;
-            padding: 10px 4px;
-            border-radius: 12px;
+            padding: 8px;
+            border-radius: 10px;
             text-align: center;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--border);
         }
 
         .stat-value {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 800;
             display: block;
-            margin-top: 2px;
         }
 
         .stat-label {
             font-size: 0.6rem;
             color: #64748b;
-            text-transform: uppercase;
             font-weight: 700;
-            white-space: nowrap;
         }
 
-        .positive { color: var(--success); }
-        .negative { color: var(--danger); }
+        .positive { color: #16a34a; }
+        .negative { color: #dc2626; }
 
         .chart-container {
             position: relative;
@@ -155,6 +175,8 @@
 
         @media (max-width: 500px) {
             .chart-container { height: 300px; }
+            .global-settings { flex-direction: column; padding: 8px; }
+            label { font-size: 0.65rem; }
         }
     </style>
 </head>
@@ -165,102 +187,21 @@
         <div class="card">
             <div class="global-settings">
                 <div class="input-group" style="margin-bottom:0; flex:1;">
-                    <label style="justify-content: center; margin-bottom: 6px;">טווח תחזית (שנים)</label>
-                    <input type="number" id="horizon" value="40" step="1" inputmode="numeric" style="text-align: center;">
+                    <label style="justify-content: center; margin-bottom: 4px;">טווח תחזית (שנים)</label>
+                    <input type="number" id="horizon" value="40" step="1" inputmode="numeric" style="text-align: center; max-width: 100px; margin: 0 auto; display: block;">
                 </div>
             </div>
         </div>
 
         <!-- Input Section -->
         <div class="card">
-            <div class="input-grid">
-                <!-- Scenario A -->
-                <div class="scenario-panel">
-                    <div class="scenario-header color-A">🔵 תרחיש א'</div>
-                    
-                    <div class="input-group">
-                        <label>הון התחלתי (₪)</label>
-                        <input type="text" id="capitalA" value="2,000,000" class="comma-input" inputmode="numeric">
-                    </div>
-                    <div class="input-group">
-                        <label>ריבית שנתית (%)</label>
-                        <input type="number" id="interestA" value="4.0" step="0.1" inputmode="decimal">
-                    </div>
-                    <div class="input-group">
-                        <label>אינפלציה שנתית (%)</label>
-                        <input type="number" id="inflationA" value="2.5" step="0.1" inputmode="decimal">
-                    </div>
-                    <div class="input-group">
-                        <label>הוצאה חודשית (₪)</label>
-                        <input type="text" id="spendingA" value="30,000" class="comma-input" inputmode="numeric">
-                    </div>
-                    <div class="input-group">
-                        <label>הכנסה שלב 1 (₪)</label>
-                        <input type="text" id="income1A" value="16,000" class="comma-input" inputmode="numeric">
-                    </div>
-                    <div class="input-group">
-                        <label>הכנסה שלב 2 (₪)</label>
-                        <input type="text" id="income2A" value="12,000" class="comma-input" inputmode="numeric">
-                    </div>
-                    <div class="input-group">
-                        <label>ירידת הכנסה (שנה)</label>
-                        <input type="number" id="dropYearA" value="4" step="1" inputmode="numeric">
-                    </div>
-                </div>
-
-                <!-- Scenario B -->
-                <div class="scenario-panel">
-                    <div class="scenario-header color-B">🟣 תרחיש ב'</div>
-                    
-                    <div class="input-group">
-                        <label>הון התחלתי (₪)</label>
-                        <input type="text" id="capitalB" value="2,000,000" class="comma-input" inputmode="numeric">
-                    </div>
-                    <div class="input-group">
-                        <label>ריבית שנתית (%)</label>
-                        <input type="number" id="interestB" value="4.0" step="0.1" inputmode="decimal">
-                    </div>
-                    <div class="input-group">
-                        <label>אינפלציה שנתית (%)</label>
-                        <input type="number" id="inflationB" value="2.5" step="0.1" inputmode="decimal">
-                    </div>
-                    <div class="input-group">
-                        <label>הוצאה חודשית (₪)</label>
-                        <input type="text" id="spendingB" value="22,000" class="comma-input" inputmode="numeric">
-                    </div>
-                    <div class="input-group">
-                        <label>הכנסה שלב 1 (₪)</label>
-                        <input type="text" id="income1B" value="16,000" class="comma-input" inputmode="numeric">
-                    </div>
-                    <div class="input-group">
-                        <label>הכנסה שלב 2 (₪)</label>
-                        <input type="text" id="income2B" value="12,000" class="comma-input" inputmode="numeric">
-                    </div>
-                    <div class="input-group">
-                        <label>ירידת הכנסה (שנה)</label>
-                        <input type="number" id="dropYearB" value="10" step="1" inputmode="numeric">
-                    </div>
-                </div>
+            <div id="scenarioContainer" class="input-grid">
+                <!-- Scenarios injected here -->
             </div>
 
             <!-- Global Stats -->
-            <div class="stats-summary">
-                <div class="stat-box">
-                    <span class="stat-label">יתרה א'</span>
-                    <span class="stat-value" id="finalA">--</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-label">יתרה ב'</span>
-                    <span class="stat-value" id="finalB">--</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-label">התרוקנות א'</span>
-                    <span class="stat-value" id="depA">--</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-label">התרוקנות ב'</span>
-                    <span class="stat-value" id="depB">--</span>
-                </div>
+            <div id="statsSummary" class="stats-summary">
+                <!-- Stats injected here -->
             </div>
         </div>
 
@@ -274,6 +215,16 @@
 
     <script>
         let chartInstance = null;
+        let scenarios = [
+            { id: Date.now(), name: "תרחיש א'", capital: "2,000,000", interest: 4.0, inflation: 2.5, spending: "30,000", income1: "16,000", income2: "12,000", dropYear: 4 }
+        ];
+
+        const COLORS = [
+            { border: '#2563eb', bg: 'rgba(37, 99, 235, 0.05)' },
+            { border: '#7c3aed', bg: 'rgba(124, 58, 237, 0.05)' },
+            { border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.05)' },
+            { border: '#10b981', bg: 'rgba(16, 185, 129, 0.05)' }
+        ];
 
         function formatNIS(amount) {
             return new Intl.NumberFormat('he-IL', {
@@ -284,9 +235,7 @@
         }
 
         function parseClean(val) {
-            if (typeof val === 'string') {
-                return parseFloat(val.replace(/,/g, '')) || 0;
-            }
+            if (typeof val === 'string') return parseFloat(val.replace(/,/g, '')) || 0;
             return parseFloat(val) || 0;
         }
 
@@ -296,158 +245,165 @@
             return parseInt(clean, 10).toLocaleString();
         }
 
-        function runScenario(suffix, years) {
-            const months = years * 12;
-            const initialCapital = parseClean(document.getElementById('capital' + suffix).value);
-            const annualInterest = (parseFloat(document.getElementById('interest' + suffix).value) || 0) / 100;
-            const annualInflation = (parseFloat(document.getElementById('inflation' + suffix).value) || 0) / 100;
-            const startSpending = parseClean(document.getElementById('spending' + suffix).value);
-            const income1 = parseClean(document.getElementById('income1' + suffix).value);
-            const income2 = parseClean(document.getElementById('income2' + suffix).value);
-            const dropMonth = (parseFloat(document.getElementById('dropYear' + suffix).value) || 0) * 12;
+        function renderScenarios() {
+            const container = document.getElementById('scenarioContainer');
+            container.innerHTML = '';
 
-            const monthlyInterest = annualInterest / 12;
-            let currentCapital = initialCapital;
-            let currentSpending = startSpending;
-            
-            const results = [];
-            let depletionDate = null;
+            scenarios.forEach((s, index) => {
+                const color = COLORS[index % COLORS.length].border;
+                const panel = document.createElement('div');
+                panel.className = 'scenario-panel';
+                panel.style.borderTop = `4px solid ${color}`;
+                panel.innerHTML = `
+                    <div class="scenario-header" style="color: ${color}">
+                        <span>${s.name}</span>
+                        ${scenarios.length > 1 ? `<button class="remove-btn" onclick="removeScenario(${s.id})">✕</button>` : ''}
+                    </div>
+                    <div class="input-group"><label>הון התחלתי (₪)</label><input type="text" value="${s.capital}" oninput="updateVal(${s.id}, 'capital', this.value, true)"></div>
+                    <div class="input-group"><label>ריבית שנתית (%)</label><input type="number" value="${s.interest}" step="0.1" oninput="updateVal(${s.id}, 'interest', this.value)"></div>
+                    <div class="input-group"><label>אינפלציה שנתית (%)</label><input type="number" value="${s.inflation}" step="0.1" oninput="updateVal(${s.id}, 'inflation', this.value)"></div>
+                    <div class="input-group"><label>הוצאה חודשית (₪)</label><input type="text" value="${s.spending}" oninput="updateVal(${s.id}, 'spending', this.value, true)"></div>
+                    <div class="input-group"><label>הכנסה שלב 1 (₪)</label><input type="text" value="${s.income1}" oninput="updateVal(${s.id}, 'income1', this.value, true)"></div>
+                    <div class="input-group"><label>הכנסה שלב 2 (₪)</label><input type="text" value="${s.income2}" oninput="updateVal(${s.id}, 'income2', this.value, true)"></div>
+                    <div class="input-group"><label>ירידת הכנסה (שנה)</label><input type="number" value="${s.dropYear}" oninput="updateVal(${s.id}, 'dropYear', this.value)"></div>
+                `;
+                container.appendChild(panel);
+            });
 
-            for (let m = 0; m <= months; m++) {
-                results.push(currentCapital);
-
-                if (currentCapital < 0 && depletionDate === null) {
-                    depletionDate = (m / 12).toFixed(1);
-                }
-
-                // Inflation adjustment (Annual)
-                if (m > 0 && m % 12 === 0) {
-                    currentSpending = currentSpending * (1 + annualInflation);
-                }
-
-                const currentIncome = (m < dropMonth) ? income1 : income2;
-                const gap = currentSpending - currentIncome;
-                const interestEarned = currentCapital * monthlyInterest;
-                currentCapital = currentCapital + interestEarned - gap;
+            if (scenarios.length < 4) {
+                const addCard = document.createElement('div');
+                addCard.className = 'add-scenario-card';
+                addCard.onclick = addScenario;
+                addCard.innerHTML = `<span style="font-size: 2rem; margin-bottom: 8px;">+</span><span style="font-weight: bold;">הוסף תרחיש</span>`;
+                container.appendChild(addCard);
             }
 
-            return { data: results, final: currentCapital, depletion: depletionDate };
+            calculateAndDraw();
+        }
+
+        function addScenario() {
+            if (scenarios.length >= 4) return;
+            const last = scenarios[scenarios.length - 1];
+            const names = ["תרחיש א'", "תרחיש ב'", "תרחיש ג'", "תרחיש ד'"];
+            scenarios.push({
+                ...last,
+                id: Date.now(),
+                name: names[scenarios.length]
+            });
+            renderScenarios();
+        }
+
+        function removeScenario(id) {
+            scenarios = scenarios.filter(s => s.id !== id);
+            // Re-map names
+            const names = ["תרחיש א'", "תרחיש ב'", "תרחיש ג'", "תרחיש ד'"];
+            scenarios.forEach((s, i) => s.name = names[i]);
+            renderScenarios();
+        }
+
+        function updateVal(id, field, val, comma = false) {
+            const s = scenarios.find(x => x.id === id);
+            if (comma) {
+                const target = event.target;
+                const start = target.selectionStart;
+                const end = target.selectionEnd;
+                const oldLen = target.value.length;
+                
+                target.value = formatWithCommas(val);
+                const newLen = target.value.length;
+                target.setSelectionRange(start + (newLen - oldLen), end + (newLen - oldLen));
+                s[field] = target.value;
+            } else {
+                s[field] = parseFloat(val) || 0;
+            }
+            calculateAndDraw();
+        }
+
+        function runScenario(s, years) {
+            const months = years * 12;
+            const cap = parseClean(s.capital);
+            const interest = (s.interest || 0) / 100 / 12;
+            const inflation = (s.inflation || 0) / 100;
+            const inc1 = parseClean(s.income1);
+            const inc2 = parseClean(s.income2);
+            const dropM = (s.dropYear || 0) * 12;
+            
+            let curCap = cap;
+            let curSpend = parseClean(s.spending);
+            const results = [];
+            let depY = null;
+
+            for (let m = 0; m <= months; m++) {
+                results.push(curCap);
+                if (curCap < 0 && depY === null) depY = (m / 12).toFixed(1);
+                if (m > 0 && m % 12 === 0) curSpend *= (1 + inflation);
+                const gap = curSpend - (m < dropM ? inc1 : inc2);
+                curCap = curCap + (curCap * interest) - gap;
+            }
+            return { data: results, final: curCap, depletion: depY };
         }
 
         function calculateAndDraw() {
             const years = parseInt(document.getElementById('horizon').value) || 40;
             const months = years * 12;
+            const allResults = scenarios.map(s => runScenario(s, years));
+
+            // Stats
+            const stats = document.getElementById('statsSummary');
+            stats.innerHTML = '';
+            allResults.forEach((r, i) => {
+                const color = COLORS[i % COLORS.length].border;
+                const box = document.createElement('div');
+                box.className = 'stat-box';
+                box.style.borderRight = `4px solid ${color}`;
+                box.innerHTML = `
+                    <div class="stat-label">${scenarios[i].name}</div>
+                    <div class="stat-value ${r.final >= 0 ? 'positive' : 'negative'}">${formatNIS(r.final)}</div>
+                    <div class="stat-value ${r.depletion ? 'negative' : 'positive'}" style="font-size: 0.7rem;">${r.depletion ? 'התרוקנות: שנה ' + r.depletion : 'בטוח'}</div>
+                `;
+                stats.appendChild(box);
+            });
+
+            // Chart
+            const step = years > 30 ? 12 : (years > 15 ? 6 : 3);
+            const labels = Array.from({length: months + 1}, (_, i) => (i / 12).toFixed(1)).filter((_, i) => i % step === 0);
             
-            const scenarioA = runScenario('A', years);
-            const scenarioB = runScenario('B', years);
-
-            // Update UI
-            document.getElementById('finalA').innerText = formatNIS(scenarioA.final);
-            document.getElementById('finalB').innerText = formatNIS(scenarioB.final);
-            document.getElementById('finalA').className = 'stat-value ' + (scenarioA.final >= 0 ? 'positive' : 'negative');
-            document.getElementById('finalB').className = 'stat-value ' + (scenarioB.final >= 0 ? 'positive' : 'negative');
-
-            document.getElementById('depA').innerText = scenarioA.depletion ? `שנה ${scenarioA.depletion}` : 'בטוח';
-            document.getElementById('depB').innerText = scenarioB.depletion ? `שנה ${scenarioB.depletion}` : 'בטוח';
-            document.getElementById('depA').className = 'stat-value ' + (scenarioA.depletion ? 'negative' : 'positive');
-            document.getElementById('depB').className = 'stat-value ' + (scenarioB.depletion ? 'negative' : 'positive');
-
-            // Labels (Years)
-            const labels = Array.from({length: months + 1}, (_, i) => (i / 12).toFixed(1));
-
-            // Filtering for chart performance - adapt based on horizon
-            let step = 3;
-            if (years > 30) step = 12;
-            else if (years > 15) step = 6;
-            
-            const dLabels = labels.filter((_, i) => i % step === 0);
-            const dA = scenarioA.data.filter((_, i) => i % step === 0);
-            const dB = scenarioB.data.filter((_, i) => i % step === 0);
+            const datasets = allResults.map((r, i) => ({
+                label: scenarios[i].name,
+                data: r.data.filter((_, idx) => idx % step === 0),
+                borderColor: COLORS[i % COLORS.length].border,
+                backgroundColor: COLORS[i % COLORS.length].bg,
+                borderWidth: 2,
+                pointRadius: 0,
+                fill: true,
+                tension: 0.1
+            }));
 
             const ctx = document.getElementById('financeChart').getContext('2d');
             if (chartInstance) chartInstance.destroy();
 
             chartInstance = new Chart(ctx, {
                 type: 'line',
-                data: {
-                    labels: dLabels,
-                    datasets: [
-                        {
-                            label: "א'",
-                            data: dA,
-                            borderColor: '#2563eb',
-                            backgroundColor: 'rgba(37, 99, 235, 0.05)',
-                            borderWidth: 2,
-                            pointRadius: 0,
-                            fill: true,
-                            tension: 0.1
-                        },
-                        {
-                            label: "ב'",
-                            data: dB,
-                            borderColor: '#7c3aed',
-                            backgroundColor: 'rgba(124, 58, 237, 0.05)',
-                            borderWidth: 2,
-                            pointRadius: 0,
-                            fill: true,
-                            tension: 0.1
-                        }
-                    ]
-                },
+                data: { labels, datasets },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     rtl: true,
                     interaction: { intersect: false, mode: 'index' },
                     plugins: {
-                        legend: { position: 'top', labels: { boxWidth: 10, padding: 10, font: { weight: 'bold', family: 'system-ui', size: 11 } } },
-                        tooltip: {
-                            rtl: true,
-                            callbacks: {
-                                label: (c) => `${c.dataset.label}: ${formatNIS(c.parsed.y)}`
-                            }
-                        }
+                        legend: { position: 'top', labels: { boxWidth: 10, padding: 10, font: { weight: 'bold', size: 11 } } },
+                        tooltip: { rtl: true, callbacks: { label: (c) => `${c.dataset.label}: ${formatNIS(c.parsed.y)}` } }
                     },
                     scales: {
-                        x: { 
-                            title: { display: false }, 
-                            ticks: { maxRotation: 0, autoSkip: true, font: { size: 9 } }
-                        },
-                        y: { 
-                            position: 'right',
-                            ticks: { 
-                                font: { size: 9 },
-                                callback: (v) => '₪' + (v / 1000000).toFixed(1) + 'M' 
-                            } 
-                        }
+                        x: { ticks: { maxRotation: 0, autoSkip: true, font: { size: 9 } } },
+                        y: { position: 'right', ticks: { font: { size: 9 }, callback: (v) => '₪' + (v / 1000000).toFixed(1) + 'M' } }
                     }
                 }
             });
         }
 
-        // Add comma formatting to specific fields
-        document.querySelectorAll('.comma-input').forEach(input => {
-            input.addEventListener('input', (e) => {
-                const start = e.target.selectionStart;
-                const end = e.target.selectionEnd;
-                const oldLen = e.target.value.length;
-                
-                e.target.value = formatWithCommas(e.target.value);
-                
-                // Adjust cursor position
-                const newLen = e.target.value.length;
-                e.target.setSelectionRange(start + (newLen - oldLen), end + (newLen - oldLen));
-                
-                calculateAndDraw();
-            });
-        });
-
-        // Add standard calc trigger to all inputs
-        document.querySelectorAll('input').forEach(input => {
-            input.addEventListener('input', calculateAndDraw);
-        });
-
-        window.addEventListener('load', calculateAndDraw);
+        document.getElementById('horizon').addEventListener('input', calculateAndDraw);
+        window.addEventListener('load', renderScenarios);
     </script>
 </body>
 </html>
