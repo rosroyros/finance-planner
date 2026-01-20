@@ -22,7 +22,7 @@
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: 12px;
+            padding: 10px;
             display: flex;
             justify-content: center;
         }
@@ -32,12 +32,12 @@
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 12px;
         }
 
         .card {
             background: var(--card);
-            padding: 20px;
+            padding: 16px;
             border-radius: 16px;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
         }
@@ -45,46 +45,42 @@
         .input-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 24px;
+            gap: 16px;
         }
 
-        @media (max-width: 900px) {
-            .input-grid { grid-template-columns: 1fr; gap: 32px; }
-        }
-
-        h2 { margin-top: 0; font-size: 1.25rem; margin-bottom: 20px; color: #334155; }
+        h2 { margin-top: 0; font-size: 1.1rem; margin-bottom: 16px; color: #334155; }
         
         .scenario-header {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 6px;
             font-weight: 800;
-            font-size: 1.1rem;
-            margin-bottom: 16px;
-            padding-bottom: 8px;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
             border-bottom: 2px solid #e2e8f0;
         }
 
         .color-A { color: var(--primary); }
         .color-B { color: var(--secondary); }
 
-        .input-group { margin-bottom: 12px; }
+        .input-group { margin-bottom: 10px; }
         
         label {
             display: flex;
             justify-content: space-between;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             font-weight: 600;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
             color: #64748b;
         }
 
         input {
             width: 100%;
-            padding: 10px 12px;
+            padding: 8px 10px;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
-            font-size: 1rem;
+            font-size: 0.9rem;
             box-sizing: border-box; 
             transition: all 0.2s;
             text-align: right;
@@ -101,33 +97,36 @@
         .stats-summary {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-top: 20px;
+            gap: 8px;
+            margin-top: 16px;
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 650px) {
             .stats-summary { grid-template-columns: 1fr 1fr; }
-            .card { padding: 16px; }
-            body { padding: 8px; }
+            body { padding: 6px; }
+            .card { padding: 12px; }
+            .input-grid { gap: 10px; }
+            label { font-size: 0.7rem; }
+            input { padding: 6px 8px; font-size: 0.85rem; }
         }
 
         .stat-box {
             background: #f8fafc;
-            padding: 12px 8px;
+            padding: 10px 4px;
             border-radius: 12px;
             text-align: center;
             border: 1px solid #e2e8f0;
         }
 
         .stat-value {
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             font-weight: 800;
             display: block;
             margin-top: 2px;
         }
 
         .stat-label {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             color: #64748b;
             text-transform: uppercase;
             font-weight: 700;
@@ -139,12 +138,12 @@
 
         .chart-container {
             position: relative;
-            height: 450px;
+            height: 400px;
             width: 100%;
         }
 
-        @media (max-height: 700px) {
-            .chart-container { height: 350px; }
+        @media (max-width: 500px) {
+            .chart-container { height: 300px; }
         }
     </style>
 </head>
@@ -348,7 +347,7 @@
                     labels: dLabels,
                     datasets: [
                         {
-                            label: "תרחיש א'",
+                            label: "א'",
                             data: dA,
                             borderColor: '#2563eb',
                             backgroundColor: 'rgba(37, 99, 235, 0.05)',
@@ -358,7 +357,7 @@
                             tension: 0.1
                         },
                         {
-                            label: "תרחיש ב'",
+                            label: "ב'",
                             data: dB,
                             borderColor: '#7c3aed',
                             backgroundColor: 'rgba(124, 58, 237, 0.05)',
@@ -375,7 +374,7 @@
                     rtl: true,
                     interaction: { intersect: false, mode: 'index' },
                     plugins: {
-                        legend: { position: 'top', labels: { boxWidth: 12, padding: 15, font: { weight: 'bold', family: 'system-ui', size: 12 } } },
+                        legend: { position: 'top', labels: { boxWidth: 10, padding: 10, font: { weight: 'bold', family: 'system-ui', size: 11 } } },
                         tooltip: {
                             rtl: true,
                             callbacks: {
@@ -385,13 +384,13 @@
                     },
                     scales: {
                         x: { 
-                            title: { display: true, text: 'שנים', font: { size: 11 } }, 
-                            ticks: { maxRotation: 0, autoSkip: true, font: { size: 10 } }
+                            title: { display: false }, 
+                            ticks: { maxRotation: 0, autoSkip: true, font: { size: 9 } }
                         },
                         y: { 
                             position: 'right',
                             ticks: { 
-                                font: { size: 10 },
+                                font: { size: 9 },
                                 callback: (v) => '₪' + (v / 1000000).toFixed(1) + 'M' 
                             } 
                         }
