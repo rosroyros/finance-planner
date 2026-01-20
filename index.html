@@ -145,7 +145,7 @@
                     
                     <div class="input-group">
                         <label>Starting Capital (₪)</label>
-                        <input type="number" id="capitalA" value="2000000" step="10000">
+                        <input type="text" id="capitalA" value="2,000,000" class="comma-input">
                     </div>
                     <div class="input-group">
                         <label>Annual Interest (%)</label>
@@ -153,15 +153,15 @@
                     </div>
                     <div class="input-group">
                         <label>Monthly Spending (₪)</label>
-                        <input type="number" id="spendingA" value="30000" step="500">
+                        <input type="text" id="spendingA" value="30,000" class="comma-input">
                     </div>
                     <div class="input-group">
                         <label>Phase 1 Income (₪)</label>
-                        <input type="number" id="income1A" value="16000" step="500">
+                        <input type="text" id="income1A" value="16,000" class="comma-input">
                     </div>
                     <div class="input-group">
                         <label>Phase 2 Income (₪)</label>
-                        <input type="number" id="income2A" value="12000" step="500">
+                        <input type="text" id="income2A" value="12,000" class="comma-input">
                     </div>
                     <div class="input-group">
                         <label>Income Drop (Year)</label>
@@ -175,7 +175,7 @@
                     
                     <div class="input-group">
                         <label>Starting Capital (₪)</label>
-                        <input type="number" id="capitalB" value="2000000" step="10000">
+                        <input type="text" id="capitalB" value="2,000,000" class="comma-input">
                     </div>
                     <div class="input-group">
                         <label>Annual Interest (%)</label>
@@ -183,15 +183,15 @@
                     </div>
                     <div class="input-group">
                         <label>Monthly Spending (₪)</label>
-                        <input type="number" id="spendingB" value="22000" step="500">
+                        <input type="text" id="spendingB" value="22,000" class="comma-input">
                     </div>
                     <div class="input-group">
                         <label>Phase 1 Income (₪)</label>
-                        <input type="number" id="income1B" value="16000" step="500">
+                        <input type="text" id="income1B" value="16,000" class="comma-input">
                     </div>
-                    <div class="input-group)
+                    <div class="input-group">
                         <label>Phase 2 Income (₪)</label>
-                        <input type="number" id="income2B" value="12000" step="500">
+                        <input type="text" id="income2B" value="12,000" class="comma-input">
                     </div>
                     <div class="input-group">
                         <label>Income Drop (Year)</label>
@@ -242,12 +242,25 @@
             }).format(amount);
         }
 
+        function parseClean(val) {
+            if (typeof val === 'string') {
+                return parseFloat(val.replace(/,/g, '')) || 0;
+            }
+            return parseFloat(val) || 0;
+        }
+
+        function formatWithCommas(val) {
+            const clean = val.replace(/,/g, '').replace(/[^\d]/g, '');
+            if (clean === '') return '';
+            return parseInt(clean, 10).toLocaleString();
+        }
+
         function runScenario(suffix) {
-            const initialCapital = parseFloat(document.getElementById('capital' + suffix).value) || 0;
+            const initialCapital = parseClean(document.getElementById('capital' + suffix).value);
             const annualInterest = (parseFloat(document.getElementById('interest' + suffix).value) || 0) / 100;
-            const startSpending = parseFloat(document.getElementById('spending' + suffix).value) || 0;
-            const income1 = parseFloat(document.getElementById('income1' + suffix).value) || 0;
-            const income2 = parseFloat(document.getElementById('income2' + suffix).value) || 0;
+            const startSpending = parseClean(document.getElementById('spending' + suffix).value);
+            const income1 = parseClean(document.getElementById('income1' + suffix).value);
+            const income2 = parseClean(document.getElementById('income2' + suffix).value);
             const dropMonth = (parseFloat(document.getElementById('dropYear' + suffix).value) || 0) * 12;
 
             const monthlyInterest = annualInterest / 12;
@@ -351,8 +364,28 @@
             });
         }
 
-        const inputs = document.querySelectorAll('input');
-        inputs.forEach(input => input.addEventListener('input', calculateAndDraw));
+        // Add comma formatting to specific fields
+        document.querySelectorAll('.comma-input').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const start = e.target.selectionStart;
+                const end = e.target.selectionEnd;
+                const oldLen = e.target.value.length;
+                
+                e.target.value = formatWithCommas(e.target.value);
+                
+                // Adjust cursor position
+                const newLen = e.target.value.length;
+                e.target.setSelectionRange(start + (newLen - oldLen), end + (newLen - oldLen));
+                
+                calculateAndDraw();
+            });
+        });
+
+        // Add standard calc trigger to regular number fields
+        document.querySelectorAll('input:not(.comma-input)').forEach(input => {
+            input.addEventListener('input', calculateAndDraw);
+        });
+
         window.addEventListener('load', calculateAndDraw);
     </script>
 </body>
