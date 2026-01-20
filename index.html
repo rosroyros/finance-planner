@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>מתכנן תרחישים פיננסיים (₪)</title>
+    <title>מתכנן תרחישים פינนסיים (₪)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         :root {
@@ -62,6 +62,12 @@
                 grid-template-columns: 1fr 1fr; 
                 gap: 8px;
             }
+            .stats-summary { grid-template-columns: 1fr 1fr !important; }
+            body { padding: 6px; }
+            .card { padding: 12px; }
+            label { font-size: 0.7rem; }
+            input { padding: 6px 8px; font-size: 0.85rem; }
+            .global-settings { padding: 8px; flex-direction: column; align-items: stretch; gap: 8px; }
         }
 
         .scenario-panel {
@@ -117,28 +123,24 @@
             color: #2563eb;
         }
 
-        .input-group { margin-bottom: 10px; }
+        .input-group { margin-bottom: 8px; }
         
         label {
             display: flex;
             justify-content: space-between;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
             color: #64748b;
         }
 
         input {
             width: 100%;
-            padding: 8px 10px;
+            padding: 6px 8px;
             border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            box-sizing: border-box; 
-            transition: all 0.2s;
+            border-radius: 6px;
+            font-size: 0.85rem;
             text-align: right;
-            appearance: none;
-            -webkit-appearance: none;
         }
 
         input:focus {
@@ -152,16 +154,6 @@
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 8px;
             margin-top: 16px;
-        }
-
-        @media (max-width: 650px) {
-            .stats-summary { grid-template-columns: 1fr 1fr; }
-            body { padding: 6px; }
-            .card { padding: 12px; }
-            .input-grid { gap: 10px; }
-            label { font-size: 0.7rem; }
-            input { padding: 6px 8px; font-size: 0.85rem; }
-            .global-settings { padding: 8px; flex-direction: column; align-items: stretch; gap: 8px; }
         }
 
         .stat-box {
@@ -283,7 +275,7 @@
                     <div class="input-group"><label>הון התחלתי (₪)</label><input type="text" value="${s.capital}" oninput="updateVal(${s.id}, 'capital', this.value, true)"></div>
                     <div class="input-group"><label>ריבית שנתית (%)</label><input type="number" value="${s.interest}" step="0.1" oninput="updateVal(${s.id}, 'interest', this.value)"></div>
                     <div class="input-group"><label>אינפלציה שנתית (%)</label><input type="number" value="${s.inflation}" step="0.1" oninput="updateVal(${s.id}, 'inflation', this.value)"></div>
-                    <div class="input-group"><label>הוצאה חودשית (₪)</label><input type="text" value="${s.spending}" oninput="updateVal(${s.id}, 'spending', this.value, true)"></div>
+                    <div class="input-group"><label>הוצאה חודשית (₪)</label><input type="text" value="${s.spending}" oninput="updateVal(${s.id}, 'spending', this.value, true)"></div>
                     <div class="input-group"><label>הכנסה שלב 1 (₪)</label><input type="text" value="${s.income1}" oninput="updateVal(${s.id}, 'income1', this.value, true)"></div>
                     <div class="input-group"><label>הכנסה שלב 2 (₪)</label><input type="text" value="${s.income2}" oninput="updateVal(${s.id}, 'income2', this.value, true)"></div>
                     <div class="input-group"><label>ירידת הכנסה (שנה)</label><input type="number" value="${s.dropYear}" oninput="updateVal(${s.id}, 'dropYear', this.value)"></div>
@@ -324,7 +316,7 @@
         function updateVal(id, field, val, comma = false) {
             const s = scenarios.find(x => x.id === id);
             if (comma) {
-                const target = event.target;
+                const target = event.srcElement || event.target;
                 const start = target.selectionStart;
                 const end = target.selectionEnd;
                 const oldLen = target.value.length;
@@ -415,7 +407,7 @@
                     scales: {
                         x: { ticks: { maxRotation: 0, autoSkip: true, font: { size: 9 } } },
                         y: { 
-                            position: 'left', // FIXED: Forced to left
+                            position: 'left', // FORCE LEFT
                             ticks: { font: { size: 9 }, callback: (v) => '₪' + (v / 1000000).toFixed(1) + 'M' } 
                         }
                     }
